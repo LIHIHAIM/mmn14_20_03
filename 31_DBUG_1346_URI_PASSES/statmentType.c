@@ -12,7 +12,7 @@ ID: 215105321,     313544165       Tutor: Danny Calfon */
 #define DIRECTIVE -1
 #define LINE_LEN 81
 
-static boolean isBlank(char *);
+static boolean isBlankLine(char *);
 static void delComments(char *);
 static int jumpLabel(char *,int);
 
@@ -20,24 +20,22 @@ static int jumpLabel(char *,int);
  comment, blank (spaces), order or directive */
 statType getStatType(char *line){
      int i = 0;
-     if(isBlank(line) == TRUE) /* if the line is a blank one */
+     if(isBlankLine(line) == TRUE) /* if the line is a blank one */
           return blank;
      delComments(line);
-     if(isBlank(line) == TRUE)
+     if(isBlankLine(line) == TRUE)
           return comment;
      while(line[i] != '\0' && isspace(line[i]))
           i++;
-     
      if(jumpLabel(line, i) == DIRECTIVE){ /* jumps over the optional label in the start of the sentence */
           return directive;
      }
      return order;
 }
 
-
 /* isBlank(): This function return if the only characters in a characters array are spaces 
  (tabs, enters, vertical tabs etc.) */
-static boolean isBlank(char *line){
+static boolean isBlankLine(char *line){
      int i = 0;
      while(line[i] != '\0'){
           if(!isspace(line[i]))
@@ -84,14 +82,6 @@ static int jumpLabel(char *line, int i){
                break;
           if(curr == '.') /* no label */
                return DIRECTIVE;
-          /*if(curr == ':'){
-               while((curr = line[i]) != '.'){
-                    if(curr == '\0')
-                         return 0;
-                    i++;
-               }
-               return DIRECTIVE;
-          }*/
           i++;
      }
      return 0;

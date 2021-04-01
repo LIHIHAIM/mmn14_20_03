@@ -4,14 +4,11 @@ in this file:
 author: Uri K.H,   Lihi Haim       Date: 21.3.2021 
 ID: 215105321,     313544165       Tutor: Danny Calfon */
 
-#include <ctype.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-
+#include <string.h>
+#include <ctype.h>
 #include "line.h"
-#include "util.h"
-#include "label.h"
 
 #define MAX_DIR_COM_LEN 8 /* maximum length of a directive command */ 
 #define DIR_COMS 4 /* the directive commands */

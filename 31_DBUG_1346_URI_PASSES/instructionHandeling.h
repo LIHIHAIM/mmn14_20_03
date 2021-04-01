@@ -5,9 +5,8 @@ author: Uri K.H,   Lihi Haim       Date: 21.3.2021
 ID: 215105321,     313544165       Tutor: Danny Calfon */
 
 #include "bool.h"
-#include "word.h"
 
 boolean pushInstFirst(char *, int *, int, boolean);
 boolean pushInstSecond(char *, int *, int);
-void cleanIC();
 boolean isIlegalName(char *, int);
+void cleanIC();

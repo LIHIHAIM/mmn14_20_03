@@ -13,18 +13,14 @@ This file also conatins the sub functions nedded for the main 'compile()' fucnti
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "ineterface.h"
 #include "files.h"
 #include "line.h"
-#include "util.h"
 #include "label.h"
+#include "util.h"
 #include "instructionHandeling.h"
 #include "dataHandeling.h"
 #include "symbolTable.h"
 #include "statmentType.h"
-
-#include "privateSymTabFuncs.h"
-
 
 #define FOREVER 1
 
@@ -35,15 +31,14 @@ void clean(boolean, FILE *);
  file.ent - an "entry" file, which includes the names of all the variable which other files can see and
             their address in the RAM.
  file.ext - an "extern" file, which includes the names of all the external variables (from other files) 
-            and their calling address in the RAM.
-*/
+            and their calling address in the RAM. */
 boolean compile(char *fileName){
-     /* files variables */
+     /* file variables */
      char *tempFileName = malloc(strlen(fileName) + MAX_SUFIX_LEN + 1);
-     FILE *fd = fopen(addSufix(tempFileName, ".as", fileName), "r");
+     FILE *fd = openf(addSufix(tempFileName, ".as", fileName), "r");
      register int lineCnt = 0;
      /* line variables */
-     char line[LINE_LEN] = {'\0'};/* array for handling a line of assembly code */
+     char line[LINE_LEN + 1] = {'\0'};/* array for handling a line of assembly code */
      int lInd; /* the Line-Index */
      char *tempLine = NULL, *optLabel = NULL;
      /* label and compilation variables and falgs */
@@ -55,7 +50,6 @@ boolean compile(char *fileName){
           return ERROR;
      }
      if (!fd){
-          printf("error : could not open file: \"%s.as\"\n",fileName);
           free(tempFileName);
           return FALSE;
      }
@@ -66,7 +60,7 @@ boolean compile(char *fileName){
           labelExist = FALSE;
           lineCnt++;
           lInd = 0;
-          tempLine = readLine(fd, LINE_LEN); /* reading a line from the file */
+          tempLine = readLine(fd, LINE_LEN + 1, lineCnt); /* reading a line from the file */
           if (tempLine[0] == '\0'){ /* end of file */
                free(tempLine);
                break;
@@ -74,9 +68,9 @@ boolean compile(char *fileName){
           strcpy(line, tempLine);
           free(tempLine);
 
-          if(isBlank(line, lInd))
-               continue;
           jumpSpaces(line, &lInd);
+          if(line[lInd] == '\0')
+               continue;
           if (!(optLabel = readWord(line, &lInd))){
                clean(TRUE, fd);
                return ERROR;
@@ -87,18 +81,20 @@ boolean compile(char *fileName){
                     compSuc = FALSE;
                if(isBlank(line, lInd)){
                     printf("error [line %d]: statment cannot include only label defenition\n", lineCnt);
+                    printf("warning [line %d]: the label \"%s\" in a blank line is meaningless (ignored)\n", lineCnt, optLabel);
                     jumpSpaces(line, &lInd);
                     free(optLabel);
+                    /* labelExist = FALSE; */
                     compSuc = FALSE;
                     continue;
                }
           }
-          if(!labelExist){
+          else if(!labelExist){
                free(optLabel);
                lInd = 0;
           }
           switch ((type = getStatType(line))){ /* finding the statment type (instruction/ directive/ balnk line/ comment) */
-          case blank:
+          case blank: /* would not enter... */
           case comment:
                break;
           case directive:
@@ -217,7 +213,7 @@ boolean compile(char *fileName){
           lInd = 0;
           lineCnt++;
           labelExist = FALSE;
-          tempLine = readLine(fd, LINE_LEN); /* reading a line from the file */
+          tempLine = readLine(fd, LINE_LEN + 1, lineCnt); /* reading a line from the file */
           if (tempLine[0] == '\0'){ /* end of file */
                free(tempLine);
                break;
@@ -225,10 +221,9 @@ boolean compile(char *fileName){
           strcpy(line, tempLine);
           free(tempLine);
           
-          if(isBlank(line, lInd))
-               continue;
-          /*printf("line : %s\n", line);*/
           jumpSpaces(line, &lInd);
+          if(line[lInd] == '\0')
+               continue;
           if (!(optLabel = readWord(line, &lInd))){
                free(tempFileName);
                clean(TRUE, fd);

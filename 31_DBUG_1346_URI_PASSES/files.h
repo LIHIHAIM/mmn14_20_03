@@ -11,6 +11,6 @@ ID: 215105321,     313544165       Tutor: Danny Calfon */
 #define MAX_SUFIX_LEN 4
 
 FILE *openf(char *, char *);
-char *readLine(FILE *, int);
+char *readLine(FILE *, int, int);
 char *addSufix(char *, char *, char *);
 boolean buildOutputFiles(char *);

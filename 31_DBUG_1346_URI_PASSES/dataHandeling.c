@@ -4,14 +4,13 @@ in this file:
 author: Uri K.H,   Lihi Haim       Date: 21.3.2021 
 ID: 215105321,     313544165       Tutor: Danny Calfon */
 
-#include <ctype.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "util.h"
 #include "word.h"
 #include "label.h"
-#include "privateDataFuncs.h"
 
 #define MAX_DEC_LEN 5
 
@@ -19,6 +18,7 @@ static int DC;
 static word *dataImage;
 
 static word *scanDataParams(char *, int *, char *, int);
+word getDecWord(char *, int, boolean); /* from instruction handeling.h */
 
 /* pushData(): the function get as parameters the current line we're reading,
  the pointer to the current character, the line's length and the type of the current word.
@@ -63,107 +63,83 @@ boolean pushData(char *line, int *lInd, char *type, int lineCnt, boolean allocat
  the pointer to the current word, the line's length and the type of the current word.
  and reads the parameters from the line and returns an array of words with the parameters */
 static word *scanDataParams(char *line, int *lInd, char *type, int lineCnt){
-    int size = 1, decimal, temp;
-    char curr, currentWrd[MAX_DEC_LEN];
-    word *dataForPush = calloc(size, sizeof(word));
-    word *error = malloc(sizeof(word));
+    char curr;
+    int size = 1;
+    word *dataForPush, *error = malloc(sizeof(word));
     error->ARE = ERROR_ARE;
 
-    if (!isAlloc(dataForPush) || !isAlloc(error)){
-        free(dataForPush);
-        free(error);
+    if (!isAlloc(error))
         return NULL;
-    }
     /*There must be parameters after .data or .stirng in Directive*/
     if (line[*lInd] == '\0'){
         printf("error [line %d]: There must be parameters after the directives \".data\" or \".stirng\"\n", lineCnt);
-        free(dataForPush);
         return error;
     }
-    /*if it's a string case:*/
-    if (strcmp(type, "string") == 0){
-        if (line[*lInd] != '\"'){
-            printf("error [line %d]: the argument of the directive \".string\" must start and end with a quotation mark\n", lineCnt);
+
+    if (strcmp(type, "data") == 0){
+        char *temp = readWord(line, lInd);
+        word tempDecWord = getDecWord(temp, lineCnt, TRUE);
+        free(temp);
+
+        dataForPush = calloc(2, sizeof(word));
+        if(!isAlloc(dataForPush)){
+            free(error);
+            return NULL;
+        }
+        if(tempDecWord.ARE == ERROR_ARE){
             free(dataForPush);
             return error;
         }
-        (*lInd)++; /* the beginning of the string */
-        size = 2;
-        while ((curr = line[*lInd]) != '\0' && curr != '\"'){
-            if (curr == '\\' && line[*lInd + 1] == '\"'){
-                dataForPush = realloc(dataForPush, ++size * sizeof(word));
-                if (!isAlloc(dataForPush)){
-                    free(error);
-                    return NULL;
-                }
-                dataForPush[size - 3].wrd = '\"';
-                (*lInd) += 2;
-                continue;
-            }
+        dataForPush[0].wrd = tempDecWord.wrd;
+        dataForPush[0].ARE = tempDecWord.ARE;
+        dataForPush[1].ARE = BLANK_ARE;
+        free(error);
+        return dataForPush;
+    }
+    else if (strcmp(type, "string") != 0)
+        return error;
+    
+    /* if it's a string case: */
+    dataForPush = calloc(size, sizeof(word));
+    if (line[*lInd] != '\"'){
+        printf("error [line %d]: the argument of the directive \".string\" must start and end with a quotation mark\n", lineCnt);
+        free(dataForPush);
+        return error;
+    }
+    (*lInd)++; /* the beginning of the string */
+    size = 2;
+    while ((curr = line[*lInd]) != '\0' && curr != '\"'){
+        if (curr == '\\' && line[*lInd + 1] == '\"'){
             dataForPush = realloc(dataForPush, ++size * sizeof(word));
             if (!isAlloc(dataForPush)){
                 free(error);
                 return NULL;
             }
-            dataForPush[size - 3].wrd = curr;
-            dataForPush[size - 3].ARE = 'A';
-            (*lInd)++;
+            dataForPush[size - 3].wrd = '\"';
+            (*lInd) += 2;
+            continue;
         }
-        if (curr == '\0' || curr != '\"'){ /* string ended unaturaly at the end of the array and not by: " */
-            printf("error [line %d]: There must be \" at the end of a string\n", lineCnt);
-            free(dataForPush);
-            return error;
+        dataForPush = realloc(dataForPush, ++size * sizeof(word));
+        if (!isAlloc(dataForPush)){
+            free(error);
+            return NULL;
         }
-        (*lInd)++;
-        if (!isBlank(line, *lInd)){
-            printf("error [line %d]: the directive \".string\" gets one string only\n", lineCnt);
-            free(dataForPush);
-            return error;
-        }
-        dataForPush[size - 2].wrd = '\0';
-        dataForPush[size - 2].ARE = 'A';
-        dataForPush[size - 1].ARE = BLANK_ARE;
-        free(error);
-        return dataForPush;
-    }
-
-    if (strcmp(type, "data") != 0){
-        free(dataForPush);
-        return error;
-    }
-    if (((curr = line[*lInd]) != '+' && curr != '-' && !isdigit(curr))){
-        printf("error [line %d]: the argument (decimal number) of the \".data\" directive must start with a sign (+/-) or a digit\n", lineCnt);
-        free(dataForPush);
-        return error;
-    }
-    temp = *lInd;
-    while ((curr = line[*lInd]) != '\0' && !isspace(curr) && curr != ',' && *lInd - temp < MAX_DEC_LEN){
-        if (isdigit(curr) || ((curr == '-' || curr == '+') && temp == *lInd))
-            currentWrd[*lInd - temp] = curr;
-        else if(curr == '.'){
-            printf("error [line %d]: cannot hold uninteger numbers\n", lineCnt);
-            free(dataForPush);
-            return error;
-        }
-        else {
-            printf("error [line %d]: the argument (decimal number) of the \".data\" directive must include only digits (and an optioanl sign: +/- at its start)\n", lineCnt);
-            free(dataForPush);
-            return error;
-        }
+        dataForPush[size - 3].wrd = curr;
+        dataForPush[size - 3].ARE = 'A';
         (*lInd)++;
     }
-    currentWrd[*lInd - temp] = '\0';
-    if (isdigit(line[*lInd]) || (decimal = atoi(currentWrd)) < MIN_WORD_VAL || decimal > MAX_WORD_VAL){
-        printf("error [line %d]:the argument (decimal number) of the \".data\" directive is too %s\n", lineCnt, (decimal > MAX_WORD_VAL || isdigit(line[*lInd + 1]) ? "big" : "small"));
+    if (curr == '\0' || curr != '\"'){ /* string ended unaturaly at the end of the array and not by: " */
+        printf("error [line %d]: There must be \" at the end of a string\n", lineCnt);
         free(dataForPush);
         return error;
     }
-    dataForPush = realloc(dataForPush, ++size * sizeof(word));
-    if (!isAlloc(dataForPush)){
-        free(error);
-        return NULL;
+    (*lInd)++;
+    if (!isBlank(line, *lInd)){
+        printf("error [line %d]: the directive \".string\" gets one string only\n", lineCnt);
+        free(dataForPush);
+        return error;
     }
-    dataForPush[size - 2].wrd = decimal;
+    dataForPush[size - 2].wrd = '\0';
     dataForPush[size - 2].ARE = 'A';
     dataForPush[size - 1].ARE = BLANK_ARE;
     free(error);

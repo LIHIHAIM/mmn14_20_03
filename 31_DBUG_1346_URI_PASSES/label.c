@@ -60,7 +60,7 @@ boolean isValidLabel(char *label, int lineCnt, boolean optLabel){
           printf("error [line %d]: label \"%s\" must start with an alphabetic character\n", lineCnt, label);
           valid = FALSE;
      }
-     if(strlen(label) > LABEL_SIZE){
+     if(strlen(label) > LABEL_SIZE + 1){
           printf("error [line %d]: the maximum label length is %d characters\n", lineCnt, LABEL_SIZE);
           valid = FALSE;
      }

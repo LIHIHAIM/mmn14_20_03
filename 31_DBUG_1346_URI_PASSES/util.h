@@ -7,18 +7,13 @@ ID: 215105321,     313544165       Tutor: Danny Calfon */
 #define UTIL_H
 #include "bool.h"
 
-#define OS_MEM 100 /* operating system private memory */
-#define MAX_LABEL_LEN 31
+#define OS_MEM 100                          /* operating system private memory */
 
-enum attribs{ EXT = 1, ENT, DAT, COD };
-
-/* util.c functions prototypes */
 boolean isBlank(char *, int);
 void jumpSpaces(char *, int *);
 boolean isAlloc(void *);
 boolean isThereComma(char *, int *, int);
-
-boolean isIlegalName(char *, int); /* from instructionHandeling.c */
-int getIC(); /* from instructionHandeling.c */
-int getDC(); /* from dataHandeling.c */
+boolean isIlegalName(char *, int);          /* from instructionHandeling.c */
+int getIC();                                /* from instructionHandeling.c */
+int getDC();                                /* from dataHandeling.c */
 #endif

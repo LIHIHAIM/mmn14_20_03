@@ -4,14 +4,13 @@ in this file:  prototypes of functions which are operating on the symbol-table o
 author: Uri K.H,   Lihi Haim       Date: 21.3.2021 
 ID: 215105321,     313544165       Tutor: Danny Calfon */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
-#include "symbolTable.h"
-#include "dataHandeling.h"
 #include "label.h"
-#include "privateSymTabFuncs.h"
+#include "util.h"
+#include "symbolTable.h"
 
 typedef struct{
     int address;
@@ -23,8 +22,8 @@ static int symSize;
 static extTable *externals;
 static int extSize;
 
-static boolean definedAs(char *, enum attribs);
 static boolean addAttribToSymTab(char *, enum attribs);
+boolean definedAs(char *, enum attribs);
 
 /* pushExtern(): the function gets as parameters a line and a pointer to a external variable
  in the line and it's length,
@@ -108,11 +107,6 @@ boolean checkEntry(char *line, int *lInd, int lineCnt){
     jumpSpaces(line, lInd);
     if (!(operand = readWord(line, lInd)))
         return ERROR;
-    /*if(strcmp(operand, "\0") == 0){
-        printf("error [line %d]: missing operand after directive \".entry\"\n", lineCnt);
-        free(operand);
-        return FALSE;
-    }*/
     if(!isValidLabel(operand, lineCnt, FALSE)){
         free(operand);
         return FALSE;
@@ -226,7 +220,7 @@ boolean wasDefined(char *sym, int lineCnt, boolean printErr/*, int pass*/){
  and a directive type to search for in symbol-table 
  and the checks if the symbol with the matching directive is already in the symbol table
  and return true or false accordingly  */
-static boolean definedAs(char *sym, enum attribs attrib){
+boolean definedAs(char *sym, enum attribs attrib){
     int i;
     boolean wasFound = FALSE;
     for (i = 0; i < symSize; i++){

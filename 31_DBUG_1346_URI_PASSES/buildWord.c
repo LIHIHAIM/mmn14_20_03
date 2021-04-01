@@ -5,7 +5,6 @@ author: Uri K.H,   Lihi Haim    Date: 21.3.2021
 ID: 215105321,     313544165    Tutor: Danny Calfon */
 
 #include <stdlib.h>
-#include "util.h"
 #include "buildWord.h"
 
 #define FUNCT_SIZE 4 /* the number of bits the funct field is using */

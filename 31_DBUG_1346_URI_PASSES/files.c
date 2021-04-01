@@ -6,13 +6,10 @@ ID: 215105321,     313544165       Tutor: Danny Calfon */
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include "files.h"
 #include "util.h"
-#include "privateSymTabFuncs.h"
+#include "filesPrivate.h"
 
-void pushDataToFile(FILE *);
-void pushInstsToFile(FILE *);
 #define RAM_SIZE 4096
 
 /* openf(): Open a given file in a given status and returns the pointer to the file. */
@@ -27,14 +24,14 @@ FILE *openf(char *file, char *status){
 
 /* readLine(): Reads a line (length 80 characters) from a given file pointer - fd, 
  to a dinamic array and returns the array. */
-char *readLine(FILE *fd, int len){
+char *readLine(FILE *fd, int len, int lineCnt){
      char *line = calloc(len, sizeof(char));
      fgets(line,len,fd);
      return line;
 }
 
 /* buildOutputFiles(): the function get as a parameter the name we want for a new file
-creats the file and pushes the data into the file */
+ creats the file and pushes the data into the file */
 boolean buildOutputFiles(char *fileName){
      FILE *fd;
      char *tempFileName = malloc(strlen(fileName) + MAX_SUFIX_LEN + 1);
@@ -77,8 +74,7 @@ boolean buildOutputFiles(char *fileName){
 
 /* buildOutputFiles(): the function get as a parameter the destination global array,
  an extension to be added to name and combines them and pushes them to the destination array
- without harming 'name' itself and returns the full string's address*/
-
+ without harming 'name' itself and returns the full string's address */
 char *addSufix(char *dest, char *suffix, char *name){
      if(!dest || !suffix || !name)
           return NULL;

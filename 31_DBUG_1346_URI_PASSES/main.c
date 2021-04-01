@@ -5,11 +5,11 @@ author: Uri K.H,   Lihi Haim       Date: 21.3.2021
 ID: 215105321,     313544165       Tutor: Danny Calfon */
 
 #include <stdio.h>
-#include "ineterface.h"
+#include "bool.h"
 
+boolean compile(char *);
 /* main(): This is the main function of the program, it sends the program to compile
  prints out error messages in case compiling failed and terminates the program if needed */
-
 int main(int argc, char *argv[]){
      int i = 1;
      boolean compiled;

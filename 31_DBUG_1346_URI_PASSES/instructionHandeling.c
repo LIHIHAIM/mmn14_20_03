@@ -13,7 +13,11 @@ ID: 215105321,     313544165       Tutor: Danny Calfon */
 #include "util.h"
 #include "word.h"
 #include "buildWord.h"
-#include "privateSymTabFuncs.h"
+#include "symTabTypes.h"
+
+boolean wasDefined(char *, int, boolean); /* from symbolTable.c */
+boolean addToExtTab(char *, int); /* from symbolTable.c */
+boolean definedAs(char *, enum attribs);
 
 /* memory macros */
 #define REGISTERS 8     /* the number of general register the imagenry computer's CPU has */
@@ -76,7 +80,6 @@ static boolean isValidOpsAmount(int, int, int);
 static boolean isValidSAM(int, int, int);
 static boolean isValidTAM(int, int, int);
 static boolean isValidOperand(char *, int, int);
-static word getDecWord(char *, int);
 static int getOperationIndex(char *, int);
 static int getAddressingMethod(char *, int);
 
@@ -141,9 +144,9 @@ boolean pushInstSecond(char *line, int *lInd, int lineCnt){
             return FALSE;
         }
 
-        symTabRow = getFromSymTab(operand);
+        /*symTabRow = getFromSymTab(operand);*/
         if (wasDefined(operand, lineCnt, FALSE)){
-            if (symTabRow.attribute1 == EXT){
+            if (definedAs(operand, EXT)/*symTabRow.attribute1 == EXT*/){
                 instImage[blankIC].ARE = 'E';
                 if(!addToExtTab(operand, blankIC)){
                     free(operand);
@@ -198,12 +201,15 @@ static int JumpToBlankCell(){
 /* getDecWord(): the function gets as parameters a word and the length of the line 
  and checks if the word is a number and if its value is a decimal in the value range,
  if so, the word will be returneds */
-word getDecWord(char *toWord, int lineCnt){
+word getDecWord(char *toWord, int lineCnt, boolean isPure){
     int i = 0, decimal;
-    char *temp = toWord + 1, curr = temp[i];
+    char *temp = toWord, curr;
     word finalWrd, error;
     error.ARE = ERROR_ARE;
 
+    if(!isPure)
+        temp = toWord +1;
+    curr = temp[i];
     if (curr == '+' || curr == '-')
         i++;
     for (; i < strlen(temp); i++){
@@ -213,7 +219,10 @@ word getDecWord(char *toWord, int lineCnt){
             return error;
         }
         if (!isdigit(curr)){
-            printf("error [line %d]: in the immediate addressing method can be writen only the numericl characters\n", lineCnt);
+            if(isPure)
+                printf("error [line %d]: arguments for the directive \".data\" can be writen only in numericl characters\n", lineCnt);
+            else
+                printf("error [line %d]: in the immediate addressing method can be writen only the numericl characters\n", lineCnt);
             printf("\t\t (and '+' or '-' in the start of the number)\n");
             return error;
         }
@@ -285,9 +294,9 @@ static word *scanInstParams(char *line, int *lInd, int lineCnt){
         else if(opAmnt >=  MAX_WORDS){
             if(!isBlank(line, *lInd)){
                 printf("error [line %d]: extranous text after end of command\n", lineCnt);
-                free(memory); 
                 freeArr(operands, MAX_WORDS);
                 free(tempOperand);
+                free(memory);
                 return error;
             }
         }
@@ -297,8 +306,8 @@ static word *scanInstParams(char *line, int *lInd, int lineCnt){
 
     if (tempOperand == NULL){ /* could not read the last operand or there are more than 2 operands */
         freeArr(operands, MAX_WORDS);
-        free(memory);
         free(error);
+        free(memory);
         return NULL;
     }
     if (!isValidOpsAmount(operationInd, opAmnt-1, lineCnt) || commaErr){ /* the operands amount does not correspond to the needed amount of operands */
@@ -315,7 +324,7 @@ static word *scanInstParams(char *line, int *lInd, int lineCnt){
                 return error;
             }
             if (TAM == immidiate){
-                memory[1] = getDecWord(operands[1], lineCnt);
+                memory[1] = getDecWord(operands[1], lineCnt, FALSE);
                 if(memory[1].ARE == ERROR_ARE){
                     freeArr(operands, MAX_WORDS);
                     free(memory);
@@ -347,11 +356,11 @@ static word *scanInstParams(char *line, int *lInd, int lineCnt){
             return error;
         }
         if (SAM == immidiate)
-            memory[1] = getDecWord(operands[1], lineCnt);
+            memory[1] = getDecWord(operands[1], lineCnt, FALSE);
         else
             memory[1] = unknown;
         if (TAM == immidiate)
-            memory[2] = getDecWord(operands[2], lineCnt);
+            memory[2] = getDecWord(operands[2], lineCnt, FALSE);
         else
             memory[2] = unknown; 
         if(memory[1].ARE == ERROR_ARE || memory[2].ARE == ERROR_ARE){
