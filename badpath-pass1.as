@@ -178,3 +178,15 @@ Z10:    .invalid 85, 90
 
 ; 56. this line is ok (case sensitivity)
 STOP:   stop
+
+; 57. invalid character (r20)
+        cmp  r1,r20
+        
+; 58. invalid character (r2e)
+        cmp  r1,r2e
+        
+; 59. invalid line lentgh
+        SuperCalifragilisticExpiAlidociousSuperCalifragilisticExpiAlidociousSuperCalifragilisticExpiAlidociousSuperCalifragilisticExpiAlidocious
+
+; 60. invalid line includes only label
+        DATA4
